@@ -1,5 +1,6 @@
 streamlit
-pytube
-transformers
+yt-dlp
 torch
+transformers
+whisper
 fpdf
