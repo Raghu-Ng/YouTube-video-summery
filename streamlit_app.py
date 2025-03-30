@@ -1,15 +1,29 @@
 import streamlit as st
-from pytube import YouTube
+import yt_dlp
 from transformers import pipeline
 import torch
-import os
+import whisper
 from fpdf import FPDF
+import os
 
 def download_audio(youtube_url):
-    yt = YouTube(youtube_url)
-    audio_stream = yt.streams.filter(only_audio=True).first()
-    audio_file = audio_stream.download(filename="audio.mp4")
-    return audio_file
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'outtmpl': 'audio.%(ext)s',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
+    }
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([youtube_url])
+    return "audio.mp3"
+
+def transcribe_audio(audio_path):
+    model = whisper.load_model("base")
+    result = model.transcribe(audio_path)
+    return result["text"]
 
 def summarize_text(text):
     summarizer = pipeline("summarization", model="facebook/bart-large-cnn", device=0 if torch.cuda.is_available() else -1)
@@ -38,8 +52,7 @@ if st.button("Summarize Video"):
         audio_file = download_audio(youtube_url)
         
         st.info("Transcribing audio...")
-        # Placeholder for transcription (use Whisper or other methods here)
-        transcript = "Sample transcribed text from the lecture. Replace with actual transcription."
+        transcript = transcribe_audio(audio_file)
         
         st.info("Summarizing text...")
         summary = summarize_text(transcript)
