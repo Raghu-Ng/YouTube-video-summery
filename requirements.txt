@@ -1,6 +1,6 @@
 streamlit
 yt-dlp
-torch
 transformers
-whisper
+torch
+openai-whisper
 fpdf
